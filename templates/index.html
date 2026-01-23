@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <title>Flask + Python support</title>
+</head>
+<body>
+
+    <form method="POST" action="/download-video/">
+        <input type="text" name="yturl" placeholder="YouTube URL" required>
+        <button type="submit">Download</button>
+    </form>
+
+    <!-- <script>
+        $(document).ready(function () {
+            $("#yt_form").on("submit", function (e) {
+                e.preventDefault();
+
+                const yturl = $("#yturl").val();
+
+                $.ajax({
+                    url: `/download-video/?url=${yturl}`,
+                    type: "GET",
+                    contentType: "application/json",
+                    // data: JSON.stringify({ url: yturl }),
+                    success: function (response) {
+                        alert(response.message);
+                    },
+                    error: function (err) {
+                        alert("Error occurred");
+                        console.error(err);
+                    }
+                });
+            });
+        });
+    </script> -->
+
+</body>
+</html>
