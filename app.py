@@ -40,8 +40,9 @@ def download_vide0() -> any:
     try:
         yt = YouTube(url, on_progress_callback=on_progress)
         video = yt.streams.get_highest_resolution()
-        file_path = os.path.join(DOWNLOAD_DIR, f"{video.download()}")
-        print(f'file path is {os.path.abspath(file_path)}')
+        # file_path = os.path.join(DOWNLOAD_DIR, f"{video.download()}")
+        # print(f'file path is {os.path.abspath(file_path)}')
+        file_path = video.download(output_path=DOWNLOAD_DIR)
         return send_file(
             file_path,
             as_attachment=True,
