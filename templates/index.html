@@ -9,8 +9,13 @@
 <body>
 
     <form method="POST" action="/download-video/">
-        <input type="text" name="yturl" placeholder="YouTube URL" required>
-        <button type="submit">Download</button>
+        <input type="text" name="yturl" placeholder="YouTube URL (Video)" required>
+        <button type="submit">Download Video</button>
+    </form>
+    <br><br><br><hr><br><br>
+    <form method="POST" action="/download-audio/">
+        <input type="text" name="ytaurl" placeholder="YouTube URL (Audio)" required>
+        <button type="submit">Download Audio</button>
     </form>
 
     <!-- <script>
