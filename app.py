@@ -7,8 +7,10 @@ app = Flask(__name__, template_folder='templates')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 VIDEO_DIR = os.path.join(BASE_DIR, "VIDEO_DIR")
 AUDIO_DIR = os.path.join(BASE_DIR, 'AUDIO_DIR')
+CAPTIONS_DIR = os.path.join(BASE_DIR, "CAPTIONS_DIR")
 os.makedirs(VIDEO_DIR, exist_ok=True)
 os.makedirs(AUDIO_DIR, exist_ok=True)
+os.makedirs(CAPTIONS_DIR, exist_ok=True)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -79,6 +81,41 @@ def download_audio() -> any:
         # return  ys.download()
         print(f'error: {e}')
         return f'Stopped the process in middle'
+
+@app.route('/captions/', methods=["POST", 'GET'])
+def check_captions() -> any:
+    """
+    Docstring for check_captions
+    Takes an url and check for captions if avaialable
+    -> Please note auto generated captions will not noted as captions. (can't be downloaded here.)
+    :return: returns how many captions are available
+    :rtype: String
+    """
+    url = request.args.get("url")
+    if not url: return f"An url is required", 400
+    check = request.args.get("check")
+    languages = {'a.en': "English", "a.es": "Spanish", "a.pt": "Portuguese", "a.ru": "Russian", "a.ar": "Arabic", "a.fr": "French", "a.de": "German", "a.ja": "Japnese", "a.zh-Hans": "Chinese"}
+    yt = YouTube(url)
+    if check:
+        # print(yt.captions, type(yt.captions))
+        try:
+            # captions = yt.captions
+            # print(type(list(captions)))
+            # print(captions)
+            # for key, value in captions.items():
+            #     print(key, value)
+            # all_captions = [languages[ele] for ele in captions]
+            # print(all_captions)
+            return f"{yt.captions,list(yt.captions)}"
+        except Exception as e:
+            print(f'Got an error:  {e}')
+            return f'{e}'
+    download_captions = request.args.get("download")
+    if download_captions:
+        language = request.args.get("lang")
+        
+        captions = yt.captions
+        return 
 
 @app.route('/download/')
 def download_page() -> any:
