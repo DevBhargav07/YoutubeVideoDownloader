@@ -1,4 +1,4 @@
-from flask import Flask, request, make_response, render_template, send_file
+from flask import Flask, request, make_response, render_template, send_file, jsonify, after_this_request
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 import os
@@ -12,25 +12,11 @@ os.makedirs(VIDEO_DIR, exist_ok=True)
 os.makedirs(AUDIO_DIR, exist_ok=True)
 os.makedirs(CAPTIONS_DIR, exist_ok=True)
 
-
-@app.route('/', methods=['GET', 'POST'])
-def index() -> any:
-    #to use request
-    if request.method == "GET":
-        # to make custom responses
-        response = make_response()
-        response.status_code = 202
-        response.headers['content-type'] = 'application/octet-stream'
-        return "<h1>Hello World</h1>"
-    elif request.method == "POST":
-        return "<h1>You made a post request</h1>", 201  
-    else:
-        return "Request not valid"
-    
 @app.route('/add/<num1>/<num2>/')
 def add(num1: any, num2: any) -> int:
     try:
-        num1 = int(num1); num2 = int(num2)
+        num1 = int(num1)
+        num2 = int(num2)
     except Exception as e:
         print(f"Both inputs must be numbers but found {num1, num2}")
         return f"Both inputs must be numbers but found {num1, num2}"
@@ -39,85 +25,150 @@ def add(num1: any, num2: any) -> int:
 @app.route('/download-video/', methods=["POST"])
 def download_video() -> any:
     url = request.args.get('url')
-    if not url: url = request.form.get('yturl')
+    if not url: 
+        url = request.form.get('yturl')
+    
+    if not url:
+        return jsonify({'message': 'URL is required'}), 400
+    
     try:
         yt = YouTube(url, on_progress_callback=on_progress)
         video = yt.streams.get_highest_resolution()
-        # file_path = os.path.join(DOWNLOAD_DIR, f"{video.download()}")
-        # print(f'file path is {os.path.abspath(file_path)}')
+        if not video:
+            return jsonify({'success': False, 'message': 'No video stream available for this URL'}), 404
+        
         file_path = video.download(output_path=VIDEO_DIR)
+        
+        # Clean filename and add extension
+        safe_title = "".join(c for c in yt.title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        download_name = f"{safe_title}.mp4"
+        
+        # Optional: Delete file after sending
+        @after_this_request
+        def remove_file(response):
+            try:
+                os.remove(file_path)
+                print(f"Removed file: {file_path}")
+            except Exception as error:
+                print(f"Error removing file: {error}")
+            return response
+        
         return send_file(
             file_path,
             as_attachment=True,
-            download_name=f"{yt.title}",
+            download_name=download_name,
             mimetype="video/mp4"
         )
     except Exception as e:
-        # yt = YouTube(url, use_oauth=True, allow_oauth_cache=True, on_progress_callback=on_progress)
-        # video = yt.streams.get_highest_resolution()
-        # return video.download()
+        error_message = str(e)
+        print(f'Error in download_video: {error_message}')
         
-        print(f'error: {e}')
-        return f'Stopped the process in middle'
+        # Provide user-friendly error messages
+        if "unavailable" in error_message.lower():
+            return jsonify({'success': False, 'message': 'Video is unavailable or private'}), 404
+        elif "regex" in error_message.lower() or "video id" in error_message.lower():
+            return jsonify({'success': False, 'message': 'Invalid YouTube URL. Please check and try again.'}), 400
+        else:
+            return jsonify({'success': False, 'message': f'Failed to download video: {error_message}'}), 400
 
 @app.route('/download-audio/', methods=['POST'])
 def download_audio() -> any:
     url = request.args.get('url')
-    if not url: url = request.form.get('ytaurl')
+    if not url: 
+        url = request.form.get('ytaurl')
+    
+    if not url:
+        return jsonify({'success': False, 'message': 'URL is required'}), 400
+    
     try:
         yt = YouTube(url, on_progress_callback=on_progress)
         audio = yt.streams.get_audio_only()
+        if not audio:
+            return jsonify({'success': False, 'message': 'No audio stream available for this URL'}), 404
+
         file_path = audio.download(output_path=AUDIO_DIR)
+        
+        # Clean filename and add extension
+        safe_title = "".join(c for c in yt.title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        download_name = f"{safe_title}.mp3"
+        
+        # Optional: Delete file after sending
+        @after_this_request
+        def remove_file(response):
+            try:
+                os.remove(file_path)
+                print(f"Removed file: {file_path}")
+            except Exception as error:
+                print(f"Error removing file: {error}")
+            return response
+        
         return send_file(
             file_path,
             as_attachment=True,
-            download_name=f'{yt.title}',
+            download_name=download_name,
             mimetype="audio/mpeg"
         )
-        # return  ys.download()
     except Exception as e:
-        # yt = YouTube(url, use_oauth=True, allow_oauth_cache=True, on_progress_callback=on_progress)
-        # ys = yt.streams.get_audio_only()
-        # return  ys.download()
-        print(f'error: {e}')
-        return f'Stopped the process in middle'
+        error_message = str(e)
+        print(f'Error in download_audio: {error_message}')
+        
+        # Provide user-friendly error messages
+        if "unavailable" in error_message.lower():
+            return jsonify({'success': False, 'message': 'Video is unavailable or private'}), 404
+        elif "regex" in error_message.lower() or "video id" in error_message.lower():
+            return jsonify({'success': False, 'message': 'Invalid YouTube URL. Please check and try again.'}), 400
+        else:
+            return jsonify({'success': False, 'message': f'Failed to download audio: {error_message}'}), 400
 
 @app.route('/captions/', methods=["POST", 'GET'])
 def check_captions() -> any:
     """
     Docstring for check_captions
-    Takes an url and check for captions if avaialable
+    Takes an url and check for captions if available
     -> Please note auto generated captions will not noted as captions. (can't be downloaded here.)
     :return: returns how many captions are available
     :rtype: String
     """
     url = request.args.get("url")
-    if not url: return f"An url is required", 400
+    if not url: 
+        return jsonify({'message': 'URL is required'}), 400
+    
     check = request.args.get("check")
-    languages = {'a.en': "English", "a.es": "Spanish", "a.pt": "Portuguese", "a.ru": "Russian", "a.ar": "Arabic", "a.fr": "French", "a.de": "German", "a.ja": "Japnese", "a.zh-Hans": "Chinese"}
-    yt = YouTube(url)
-    if check:
-        # print(yt.captions, type(yt.captions))
-        try:
-            # captions = yt.captions
-            # print(type(list(captions)))
-            # print(captions)
-            # for key, value in captions.items():
-            #     print(key, value)
-            # all_captions = [languages[ele] for ele in captions]
-            # print(all_captions)
-            return f"{yt.captions,list(yt.captions)}"
-        except Exception as e:
-            print(f'Got an error:  {e}')
-            return f'{e}'
-    download_captions = request.args.get("download")
-    if download_captions:
-        language = request.args.get("lang")
+    languages = {
+        'a.en': "English", 
+        "a.es": "Spanish", 
+        "a.pt": "Portuguese", 
+        "a.ru": "Russian", 
+        "a.ar": "Arabic", 
+        "a.fr": "French", 
+        "a.de": "German", 
+        "a.ja": "Japanese", 
+        "a.zh-Hans": "Chinese"
+    }
+    
+    try:
+        yt = YouTube(url)
         
-        captions = yt.captions
-        return 
+        if check:
+            return jsonify({
+                'captions': str(yt.captions),
+                'caption_list': list(yt.captions)
+            })
+        
+        download_captions = request.args.get("download")
+        if download_captions:
+            language = request.args.get("lang")
+            captions = yt.captions
+            # TODO: Implement caption download logic
+            return jsonify({'message': 'Caption download not implemented yet'}), 501
+        
+        return jsonify({'message': 'Please specify check=true or download=true'}), 400
+        
+    except Exception as e:
+        print(f'Got an error: {e}')
+        return jsonify({'message': f'Error: {str(e)}'}), 500
 
-@app.route('/download/')
+@app.route('/')
 def download_page() -> any:
     return render_template('index.html')
 
