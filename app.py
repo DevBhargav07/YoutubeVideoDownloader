@@ -63,6 +63,9 @@ def download_video() -> any:
         if not video:
             return jsonify({'success': False, 'message': 'No video stream available for this URL'}), 404        
         file_path = video.download(output_path=VIDEO_DIR)
+
+        with open(file_path, mode='rb') as f:
+            data = io.BytesIO(f.read())
         @after_this_request
         def remove_file(response):
             try:
@@ -71,7 +74,7 @@ def download_video() -> any:
                 app.logger.error(f'Got an error {error}')
             return response
         return send_file(
-            file_path,
+            data,
             as_attachment=True,
             download_name=f'{yt.title}.mp4',
             mimetype="video/mp4"
