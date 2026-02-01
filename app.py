@@ -1,7 +1,19 @@
-from flask import Flask, request, make_response, render_template, send_file, jsonify, after_this_request
+from flask import Flask, request, render_template, send_file, jsonify, after_this_request
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
-import os
+import os, io, logging
+
+logging.basicConfig(
+    filename='application.log',
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+
+logging.basicConfig(
+    filename='error.log',
+    level=logging.ERROR,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 app = Flask(__name__, template_folder='templates')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -22,6 +34,20 @@ def add(num1: any, num2: any) -> int:
         return f"Both inputs must be numbers but found {num1, num2}"
     return f'{num1} + {num2} = {num1 + num2}'
 
+
+def check_file(file_path):
+    if not os.path.exists(file_path):
+        print(f'File doesnot exists in the path: {file_path}')
+        return False
+    try:
+        os.rename(file_path, file_path)
+        print(f'File is closed successfully!')
+        return True
+    except Exception as e:
+        print(f'file is still opened: {e}')
+        return False
+
+
 @app.route('/download-video/', methods=["POST"])
 def download_video() -> any:
     url = request.args.get('url')
@@ -35,35 +61,25 @@ def download_video() -> any:
         yt = YouTube(url, on_progress_callback=on_progress)
         video = yt.streams.get_highest_resolution()
         if not video:
-            return jsonify({'success': False, 'message': 'No video stream available for this URL'}), 404
-        
+            return jsonify({'success': False, 'message': 'No video stream available for this URL'}), 404        
         file_path = video.download(output_path=VIDEO_DIR)
-        
-        # Clean filename and add extension
-        safe_title = "".join(c for c in yt.title if c.isalnum() or c in (' ', '-', '_')).rstrip()
-        download_name = f"{safe_title}.mp4"
-        
-        # Optional: Delete file after sending
         @after_this_request
         def remove_file(response):
             try:
                 os.remove(file_path)
-                print(f"Removed file: {file_path}")
             except Exception as error:
-                print(f"Error removing file: {error}")
+                app.logger.error(f'Got an error {error}')
             return response
-        
         return send_file(
             file_path,
             as_attachment=True,
-            download_name=download_name,
+            download_name=f'{yt.title}.mp4',
             mimetype="video/mp4"
         )
     except Exception as e:
         error_message = str(e)
-        print(f'Error in download_video: {error_message}')
-        
-        # Provide user-friendly error messages
+        app.logger.error(f'Error in download_video: {error_message}')
+
         if "unavailable" in error_message.lower():
             return jsonify({'success': False, 'message': 'Video is unavailable or private'}), 404
         elif "regex" in error_message.lower() or "video id" in error_message.lower():
@@ -85,34 +101,28 @@ def download_audio() -> any:
         audio = yt.streams.get_audio_only()
         if not audio:
             return jsonify({'success': False, 'message': 'No audio stream available for this URL'}), 404
-
         file_path = audio.download(output_path=AUDIO_DIR)
+        with open(file_path, mode='rb') as f:
+            data = io.BytesIO(f.read())
         
-        # Clean filename and add extension
-        safe_title = "".join(c for c in yt.title if c.isalnum() or c in (' ', '-', '_')).rstrip()
-        download_name = f"{safe_title}.mp3"
-        
-        # Optional: Delete file after sending
         @after_this_request
         def remove_file(response):
             try:
                 os.remove(file_path)
-                print(f"Removed file: {file_path}")
             except Exception as error:
-                print(f"Error removing file: {error}")
+                app.logger.error(f'Got an error {error}')
             return response
         
         return send_file(
-            file_path,
+            data,
             as_attachment=True,
-            download_name=download_name,
-            mimetype="audio/mpeg"
+            download_name=f'{yt.title}.webm',
+            mimetype="audio/webm"
         )
     except Exception as e:
         error_message = str(e)
-        print(f'Error in download_audio: {error_message}')
-        
-        # Provide user-friendly error messages
+        app.logger.error(f'Error in download_audio: {error_message}')
+
         if "unavailable" in error_message.lower():
             return jsonify({'success': False, 'message': 'Video is unavailable or private'}), 404
         elif "regex" in error_message.lower() or "video id" in error_message.lower():
@@ -159,7 +169,6 @@ def check_captions() -> any:
         if download_captions:
             language = request.args.get("lang")
             captions = yt.captions
-            # TODO: Implement caption download logic
             return jsonify({'message': 'Caption download not implemented yet'}), 501
         
         return jsonify({'message': 'Please specify check=true or download=true'}), 400
