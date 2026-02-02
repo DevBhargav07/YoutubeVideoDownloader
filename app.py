@@ -9,12 +9,6 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
-logging.basicConfig(
-    filename='error.log',
-    level=logging.ERROR,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
-
 app = Flask(__name__, template_folder='templates')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 VIDEO_DIR = os.path.join(BASE_DIR, "VIDEO_DIR")
@@ -33,19 +27,6 @@ def add(num1: any, num2: any) -> int:
         print(f"Both inputs must be numbers but found {num1, num2}")
         return f"Both inputs must be numbers but found {num1, num2}"
     return f'{num1} + {num2} = {num1 + num2}'
-
-
-def check_file(file_path):
-    if not os.path.exists(file_path):
-        print(f'File doesnot exists in the path: {file_path}')
-        return False
-    try:
-        os.rename(file_path, file_path)
-        print(f'File is closed successfully!')
-        return True
-    except Exception as e:
-        print(f'file is still opened: {e}')
-        return False
 
 
 @app.route('/download-video/', methods=["POST"])
@@ -109,7 +90,7 @@ def download_audio() -> any:
             data = io.BytesIO(f.read())
         
         @after_this_request
-        def remove_file(response):
+        def remove_file(response) -> any:
             try:
                 os.remove(file_path)
             except Exception as error:
