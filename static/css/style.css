@@ -1,0 +1,451 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #a8b7f5 0%, #c4b5e8 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+.container {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    padding: 35px 30px;
+    max-width: 900px;
+    width: 100%;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h1 {
+    text-align: center;
+    color: #3a3a3a;
+    margin-bottom: 25px;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.forms-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.form-section {
+    padding: 22px;
+    background: #f5f7fa;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.form-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.form-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #6b7db8;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-title::before {
+    content: '';
+    width: 3px;
+    height: 18px;
+    background: #6b7db8;
+    border-radius: 2px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 13px 15px;
+    border: 1.5px solid #dde2e8;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s ease;
+    margin-bottom: 12px;
+    color: #3a3a3a;
+    font-weight: 400;
+}
+
+input[type="text"]::placeholder {
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #a8b7f5;
+    box-shadow: 0 0 0 3px rgba(168, 183, 245, 0.1);
+}
+
+button {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #a8b7f5 0%, #c4b5e8 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+}
+
+button:hover::before {
+    width: 250px;
+    height: 250px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(168, 183, 245, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+}
+
+.divider {
+    text-align: center;
+    margin: 0 15px;
+    position: relative;
+    align-self: center;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    background: #e5e7eb;
+}
+
+.divider span {
+    background: white;
+    padding: 8px 12px;
+    position: relative;
+    color: #6b7280;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 20px;
+    background: #f5f7fa;
+}
+
+/* Progress Bar Styles */
+.progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    padding: 16px 20px;
+    z-index: 2000;
+    display: none;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.progress-container.active {
+    display: block;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #3a3a3a;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.progress-status {
+    font-weight: 500;
+    color: #6b7db8;
+}
+
+.progress-percentage {
+    font-weight: 600;
+    color: #8b9dc3;
+    font-size: 14px;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #a8b7f5 0%, #c4b5e8 100%);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 75px;
+    right: 20px;
+    padding: 16px 20px;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 380px;
+    animation: slideIn 0.5s ease-out;
+    z-index: 1000;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.notification.hide {
+    animation: slideOut 0.5s ease-out forwards;
+}
+
+.notification.success {
+    background: #86efac;
+    color: #166534;
+}
+
+.notification.error {
+    background: #fca5a5;
+    color: #991b1b;
+}
+
+.notification-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    font-weight: 600;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 3px;
+    font-size: 14px;
+}
+
+.notification-message {
+    font-size: 13px;
+    opacity: 0.95;
+    font-weight: 400;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+    font-weight: 600;
+}
+
+.notification.success .notification-close {
+    color: #166534;
+}
+
+.notification.error .notification-close {
+    color: #991b1b;
+}
+
+.notification-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .forms-wrapper {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .divider {
+        margin: 0;
+    }
+
+    .divider::before {
+        top: 50%;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 1px;
+        transform: translateY(-50%);
+    }
+
+    .container {
+        padding: 28px 22px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .notification {
+        max-width: calc(100% - 40px);
+        right: 20px;
+        left: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 22px 18px;
+    }
+
+    h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+
+    .form-section {
+        padding: 18px;
+    }
+
+    .form-title {
+        font-size: 15px;
+    }
+
+    input[type="text"] {
+        padding: 11px 13px;
+        font-size: 14px;
+    }
+
+    button {
+        padding: 11px;
+        font-size: 14px;
+    }
+
+    .notification {
+        padding: 14px 16px;
+        top: 65px;
+        right: 10px;
+        left: 10px;
+    }
+
+    .notification-title {
+        font-size: 13px;
+    }
+
+    .notification-message {
+        font-size: 12px;
+    }
+
+    .progress-container {
+        padding: 12px 15px;
+    }
+
+    .progress-percentage {
+        font-size: 13px;
+    }
+
+    .progress-status {
+        font-size: 12px;
+    }
+}
