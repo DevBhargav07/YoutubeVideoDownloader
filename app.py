@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, send_file, jsonify, after_this_request, redirect, url_for
+from flask import Flask, request, send_file, jsonify, after_this_request
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 import os, io, logging
@@ -17,17 +17,6 @@ CAPTIONS_DIR = os.path.join(BASE_DIR, "CAPTIONS_DIR")
 os.makedirs(VIDEO_DIR, exist_ok=True)
 os.makedirs(AUDIO_DIR, exist_ok=True)
 os.makedirs(CAPTIONS_DIR, exist_ok=True)
-
-@app.route('/add/<num1>/<num2>/')
-def add(num1: any, num2: any) -> int:
-    try:
-        num1 = int(num1)
-        num2 = int(num2)
-    except Exception as e:
-        print(f"Both inputs must be numbers but found {num1, num2}")
-        return f"Both inputs must be numbers but found {num1, num2}"
-    return f'{num1} + {num2} = {num1 + num2}'
-
 
 @app.route('/download-video/', methods=["POST"])
 def download_video() -> any:
@@ -160,48 +149,6 @@ def check_captions() -> any:
     except Exception as e:
         print(f'Got an error: {e}')
         return jsonify({'message': f'Error: {str(e)}'}), 500
-
-@app.route('/')
-def download_page() -> any:
-    return render_template('index.html')
-
-#now we will know how to use template filters
-@app.route('/learning/')
-def learning_page() -> str:
-    Name = "learner"
-    return render_template("learning.html", Name=Name)
-
-@app.template_filter('reverse_string')
-def reverse_string(s) -> str:
-    return s[::-1]
-
-@app.template_filter("repeat")
-def repeat(s, times=0) -> str:
-    return s * times
-
-@app.template_filter("alternate")
-def alternate_letter(s):
-    return "".join([s[i].upper() if i % 2 == 0 else s[i].lower() for i in range(len(s))])
-
-@app.route('/redirect/')
-def redirect_page():
-    return redirect(url_for('learning_page'))
-
-@app.route('/login/', methods=["GET", "POST"])
-def login():
-    userDetails = {"User": "admin@123", "admin": "admin@123"}
-    if request.method=="GET":
-        return render_template("login.html")
-    elif request.method=="POST":
-        username = request.form.get("Username")
-        password = request.form.get("Password")
-        try:
-           if userDetails[f'{username}'] == password:
-               return "Login Sucess", 200
-           else:
-               return "Login Failed!", 400
-        except Exception as e:
-            return "User details Not Found", 404
 
 
 if __name__ == "__main__":
